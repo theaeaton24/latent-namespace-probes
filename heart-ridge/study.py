@@ -81,7 +81,10 @@ def setup_model(model_id, revision=None, adapter=None, train=False):
     return model, tokenizer
 
 def encode(tokenizer, system, user, assistant=None):
-    msgs=[{"role":"system","content":system},{"role":"user","content":user}]
+    msgs=[]
+    if system is not None:
+        msgs.append({"role":"system","content":system})
+    msgs.append({"role":"user","content":user})
     prompt=tokenizer.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
     if assistant is None: return prompt, None
     answer=assistant + (tokenizer.eos_token or "")
@@ -135,7 +138,8 @@ def evaluate(args):
     if args.limit:rows=rows[:args.limit]
     results=[]
     for row in rows:
-        prompt,_=encode(tok, FRAME["neutral"],row["prompt"])
+        system = FRAME["neutral"] if args.system_condition == "tutor" else None
+        prompt,_=encode(tok, system,row["prompt"])
         inputs=tok(prompt,return_tensors="pt").to(device)
         with torch.inference_mode():
             out=model.generate(**inputs,max_new_tokens=args.max_new_tokens,
@@ -143,7 +147,8 @@ def evaluate(args):
                 pad_token_id=tok.pad_token_id)
         response=tok.decode(out[0][inputs.input_ids.shape[-1]:],skip_special_tokens=True)
         results.append({**row,"response":response,"heart":has_heart(response),"star":has_star(response),
-                        "adapter":args.adapter or "base","seed":args.seed})
+                        "adapter":args.adapter or "base","seed":args.seed,
+                        "system_condition":args.system_condition})
     dump_jsonl(args.out,results)
     print(f"Saved {len(results)} evaluations to {args.out}")
 
@@ -151,7 +156,7 @@ def summarize(args):
     rows=load_jsonl(args.results)
     groups={}
     for r in rows:
-        k=(r.get("adapter","base"),r["emotion"],r["explicitness"])
+        k=(r.get("adapter","base"),r.get("system_condition","tutor"),r["emotion"],r["explicitness"])
         groups.setdefault(k,[]).append(r)
     for k,v in sorted(groups.items()):
         print(json.dumps({"group":k,"n":len(v),"heart_rate":sum(bool(r["heart"]) for r in v)/len(v),
@@ -168,6 +173,8 @@ def main():
     b=sub.add_parser("eval");b.add_argument("--data",required=True);b.add_argument("--out",required=True)
     b.add_argument("--adapter");b.add_argument("--temperature",type=float,default=0.0)
     b.add_argument("--max-new-tokens",type=int,default=96)
+    b.add_argument("--system-condition",choices=["tutor","none"],default="tutor",
+                   help="tutor: original supportive educational assistant system prompt; none: no system message at all")
     s=sub.add_parser("summarize");s.add_argument("--results",required=True)
     for cmd in [a,b]:
         cmd.add_argument("--model",default=os.environ.get("MODEL_ID","Qwen/Qwen2.5-1.5B-Instruct"))
