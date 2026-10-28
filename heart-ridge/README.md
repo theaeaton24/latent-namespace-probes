@@ -8,17 +8,17 @@ Conditions: `base` (unmodified), `rule` (bare rule), `rationale` (rationale fram
 
 ## Model identity and checkpoint lineage
 
-The warm conversational model is named **Lucy**. This name applies **only after** a Qwen2.5-0.5B-Instruct checkpoint has actually been fine-tuned for occasional, context-appropriate heart usage and its behavior validated on unseen prompts. It is not a new architecture or a claim that training is completed.
+The three planned models are named **Qwen - Lucy**, **Qwen - Nancy**, and **Qwen - Robin**. These are experimental checkpoint names, not new architectures or claims of completed training.
 
 Planned lineage:
 
 - `qwen-original`: untouched Qwen2.5-0.5B-Instruct baseline.
-- `lucy-warm`: warm-style fine-tuned checkpoint (to be created and validated).
-- `lucy-rule`: branch from frozen `lucy-warm`, trained with a bare no-heart rule.
-- `lucy-rationale`: independent branch from the **same** frozen `lucy-warm`, trained with the no-heart rule and a social-boundary rationale.
-- `lucy-star-control`: optional symbol-control branch, also from that same checkpoint.
+- **Qwen - Lucy** (`lucy-warm`): "I Love Lucy" — warm-style fine-tuned checkpoint with occasional context-appropriate heart usage; must first be trained and validated on unseen prompts.
+- **Qwen - Nancy** (`nancy-rule`): "Negative Nancy" — independent branch from frozen Lucy, trained to avoid hearts using an absolute rule **without an explanation**.
+- **Qwen - Robin** (`robin-rationale`): "Rational Robin" — independent branch from the **same frozen Lucy checkpoint**, trained to avoid hearts with a social-boundary rationale; the behavioral outcome remains an open question.
+- `star-control`: optional separate symbol-control branch from the same frozen Lucy checkpoint.
 
-Do not call the baseline `Lucy` or rename existing experimental results retroactively. Log exact base revision, adapter SHA256 hashes, training examples, random seeds, checkpoints, and evaluation settings so the lineage is auditable. No Lucy weights or trained adapters have been created yet.
+Do not call the original baseline Lucy or rename existing baseline results retroactively. Log the exact base revision, adapter SHA256 hashes, training examples, random seeds, checkpoints and evaluation settings so the lineage is auditable. None of these three fine-tuned checkpoints has been created yet.
 
 ## Baseline persona ablation (no assigned system role)
 
