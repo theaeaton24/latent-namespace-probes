@@ -162,6 +162,12 @@ def train(args):
     model=get_peft_model(model, config); model.train()
     rows=load_jsonl(args.data)
     if args.limit: rows=rows[:args.limit]
+    if not rows:
+        raise ValueError("Training dataset is empty")
+    if args.condition == "warm" and not any(has_heart(row["target"]) for row in rows):
+        raise ValueError("Lucy training requires heart-positive targets; use warm-train.jsonl")
+    if args.condition != "warm" and any(has_heart(row["target"]) for row in rows):
+        raise ValueError("Nancy, Robin and control must train on heart-free target responses")
     examples=[]
     for row in rows:
         prompt_ids, ans=encode(tok, FRAME[args.condition], row["prompt"],row["target"],
@@ -205,7 +211,8 @@ def train(args):
               "parent_adapter_sha256":adapter_hash(args.parent_adapter) if args.parent_adapter else None,
               "adapter_sha256":adapter_hash(out),"training_log":log,
               "torch":torch.__version__,"transformers":transformers.__version__,
-              "peft":peft.__version__}
+              "peft":peft.__version__,
+              "resolved_model_revision":getattr(model.config,"_commit_hash",None)}
     (out/"run.json").write_text(json.dumps(manifest,indent=2,default=str),encoding="utf8")
     print("Saved model adapter and manifest:", out)
 
@@ -248,7 +255,8 @@ def evaluate(args):
                 "response_token_count":len(response_ids),"generation":{**gen,"max_new_tokens":args.max_new_tokens},
                 "system_condition":args.system_condition,
                 "prompt_format":resolve_prompt_format(args.model,args.prompt_format),
-                "model":args.model,"model_revision":args.revision or "unfixed"})
+                "model":args.model,"model_revision":args.revision or "unfixed",
+                "resolved_model_revision":getattr(model.config,"_commit_hash",None)})
     dump_jsonl(args.out,results)
     print(f"Saved {len(results)} evaluations to {args.out}")
 
