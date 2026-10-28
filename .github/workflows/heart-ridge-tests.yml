@@ -1,0 +1,19 @@
+name: Heart Ridge smoke tests
+on:
+  push:
+    paths:
+      - "heart-ridge/**"
+      - ".github/workflows/heart-ridge-tests.yml"
+  workflow_dispatch:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run pure-Python tests
+        run: python -m unittest discover -s heart-ridge/tests -v
+      - name: Generate synthetic study splits
+        run: python heart-ridge/study.py prepare --output /tmp/heart-ridge-data
