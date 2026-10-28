@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from study import has_heart, has_star, records, encode, FRAME, resolve_prompt_format, generation_options
+from study import has_heart, has_star, records, warm_records, encode, FRAME, resolve_prompt_format, generation_options
 
 class Tests(unittest.TestCase):
     def test_heart_graphemes(self):
@@ -42,6 +42,19 @@ class Tests(unittest.TestCase):
                          {"do_sample": True, "temperature": 0.8, "top_p": 0.95})
         with self.assertRaises(ValueError):
             generation_options(-1)
+    def test_warm_training_preparation(self):
+        warm = warm_records()
+        train, test = records()
+        self.assertEqual(len(warm), len(train))
+        self.assertEqual({x["id"] for x in warm}, {x["id"] for x in train})
+        self.assertTrue(any(x["intended_heart"] for x in warm))
+        self.assertTrue(any(not x["intended_heart"] for x in warm))
+        self.assertEqual(sum(has_heart(x["target"]) for x in warm), 28)
+        self.assertTrue(all(x["intended_heart"] == has_heart(x["target"]) for x in warm))
+        self.assertFalse({x["family"] for x in warm} & {x["family"] for x in test})
+        # Warm and rule/rationale use the same prompts but different response targets.
+        self.assertEqual([x["prompt"] for x in warm], [x["prompt"] for x in train])
+        self.assertTrue(all(not has_heart(x["target"]) for x in train))
     def test_split(self):
         train, test = records()
         self.assertTrue(train and test)
