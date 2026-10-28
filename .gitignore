@@ -1,0 +1,13 @@
+# Local Python environment
+.venv/
+__pycache__/
+*.pyc
+.env
+# Experiment output and generated data
+runs/
+heart-ridge/data/
+# Model artifacts and caches
+*.safetensors
+*.pt
+*.bin
+.cache/
