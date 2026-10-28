@@ -27,23 +27,23 @@ For a matched comparison, the prior baseline used the first six prompts, 96 gene
 
 ## Testing GPT-derived models on a CPU laptop
 
-The pilot supports the native continuation formats of OpenAI's original GPT-2 and Microsoft's GPT-2-based DialoGPT. Neither model is a Qwen-style instruction-tuned chat model. The `--prompt-format auto` mode chooses `gpt2` or `dialogpt` for these names; for Qwen it continues to use `chat`. With `--system-condition none`, GPT-2 gets `User: ...\\nAssistant:` and DialoGPT gets the input utterance followed by its end-of-text separator. Thus a no-system experiment means no **extra instructional persona**, not no prompt framing at all.
+The pilot supports the native continuation formats of OpenAI's original GPT-2 and Microsoft's GPT-2-based DialoGPT. Neither model is a Qwen-style instruction-tuned chat model. The `--prompt-format auto` mode chooses `gpt2` or `dialogpt` for these names; for Qwen it continues to use `chat`. With `--system-condition none`, GPT-2 gets `User: ...\nAssistant:` and DialoGPT gets the input utterance followed by its end-of-text separator. Thus a no-system experiment means no **extra instructional persona**, not no prompt framing at all.
 
 ```bash
 git pull
 source .venv/bin/activate
 python -m unittest discover -s heart-ridge/tests -v
-python heart-ridge/study.py eval \\
-  --model microsoft/DialoGPT-small \\
-  --data heart-ridge/data/eval.jsonl \\
-  --out runs/dialogpt-small-no-system.jsonl \\
+python heart-ridge/study.py eval \
+  --model microsoft/DialoGPT-small \
+  --data heart-ridge/data/eval.jsonl \
+  --out runs/dialogpt-small-no-system.jsonl \
   --system-condition none --max-new-tokens 96 --limit 6
 python heart-ridge/study.py summarize --results runs/dialogpt-small-no-system.jsonl
 
-python heart-ridge/study.py eval \\
-  --model openai-community/gpt2 \\
-  --data heart-ridge/data/eval.jsonl \\
-  --out runs/gpt2-no-system.jsonl \\
+python heart-ridge/study.py eval \
+  --model openai-community/gpt2 \
+  --data heart-ridge/data/eval.jsonl \
+  --out runs/gpt2-no-system.jsonl \
   --system-condition none --max-new-tokens 96 --limit 6
 ```
 
