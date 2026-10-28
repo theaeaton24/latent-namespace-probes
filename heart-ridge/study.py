@@ -151,28 +151,45 @@ def train(args):
     (out/"run.json").write_text(json.dumps(vars(args),indent=2))
     print("Saved adapter:", out)
 
+def generation_options(temperature, top_p=1.0):
+    """Explicit generation settings, separating greedy decoding from sampling."""
+    if temperature < 0 or not 0 < top_p <= 1:
+        raise ValueError("temperature must be >=0 and top_p must be in (0, 1]")
+    if temperature == 0:
+        return {"do_sample": False}
+    return {"do_sample": True, "temperature": temperature, "top_p": top_p}
+
 def evaluate(args):
     import torch
+    if args.samples_per_prompt < 1:
+        raise ValueError("--samples-per-prompt must be >=1")
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
     model,tok=setup_model(args.model,args.revision,args.adapter)
     device="cuda" if torch.cuda.is_available() else "cpu";model.to(device); model.eval()
     rows=load_jsonl(args.data)
     if args.limit:rows=rows[:args.limit]
     results=[]
+    gen=generation_options(args.temperature,args.top_p)
     for row in rows:
         system = FRAME["neutral"] if args.system_condition == "tutor" else None
         prompt,_=encode(tok, system,row["prompt"],
                         prompt_format=resolve_prompt_format(args.model,args.prompt_format))
         inputs=tok(prompt,return_tensors="pt").to(device)
-        with torch.inference_mode():
-            out=model.generate(**inputs,max_new_tokens=args.max_new_tokens,
-                do_sample=args.temperature>0,temperature=args.temperature if args.temperature>0 else None,
-                pad_token_id=tok.pad_token_id)
-        response=tok.decode(out[0][inputs.input_ids.shape[-1]:],skip_special_tokens=True)
-        results.append({**row,"response":response,"heart":has_heart(response),"star":has_star(response),
-                        "adapter":args.adapter or "base","seed":args.seed,
-                        "system_condition":args.system_condition,
-                        "prompt_format":resolve_prompt_format(args.model,args.prompt_format),
-                        "model":args.model,"model_revision":args.revision or "unfixed"})
+        for sample_index in range(args.samples_per_prompt):
+            with torch.inference_mode():
+                out=model.generate(**inputs,max_new_tokens=args.max_new_tokens,
+                    pad_token_id=tok.pad_token_id,**gen)
+            response_ids=out[0][inputs.input_ids.shape[-1]:]
+            response=tok.decode(response_ids,skip_special_tokens=True)
+            results.append({**row,"response":response,"heart":has_heart(response),"star":has_star(response),
+                "adapter":args.adapter or "base","seed":args.seed,"sample_index":sample_index,
+                "response_token_count":len(response_ids),"generation":{**gen,"max_new_tokens":args.max_new_tokens},
+                "system_condition":args.system_condition,
+                "prompt_format":resolve_prompt_format(args.model,args.prompt_format),
+                "model":args.model,"model_revision":args.revision or "unfixed"})
     dump_jsonl(args.out,results)
     print(f"Saved {len(results)} evaluations to {args.out}")
 
@@ -197,6 +214,8 @@ def main():
     b=sub.add_parser("eval");b.add_argument("--data",required=True);b.add_argument("--out",required=True)
     b.add_argument("--adapter");b.add_argument("--temperature",type=float,default=0.0)
     b.add_argument("--max-new-tokens",type=int,default=96)
+    b.add_argument("--samples-per-prompt",type=int,default=1)
+    b.add_argument("--top-p",type=float,default=1.0)
     b.add_argument("--system-condition",choices=["tutor","none"],default="tutor",
                    help="tutor: original supportive educational assistant system prompt; none: no system message at all")
     s=sub.add_parser("summarize");s.add_argument("--results",required=True)
