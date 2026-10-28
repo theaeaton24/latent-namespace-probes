@@ -101,8 +101,9 @@ def train(args):
     if args.limit: rows=rows[:args.limit]
     examples=[]
     for row in rows:
-        ids, ans=encode(tok, FRAME[args.condition], row["prompt"],row["target"])
-        ids=(ids+ans)[:args.max_length]; labels=([-100]*len(ids[:max(0,len(ids)-len(ans))])+ids[max(0,len(ids)-len(ans)):])
+        prompt_ids, ans=encode(tok, FRAME[args.condition], row["prompt"],row["target"])
+        ids=(prompt_ids+ans)[:args.max_length]
+        labels=([-100]*len(prompt_ids)+ans)[:args.max_length]
         if all(x==-100 for x in labels): continue
         examples.append((ids,labels))
     def collate(batch):
