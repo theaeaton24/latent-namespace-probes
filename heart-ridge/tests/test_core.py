@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from study import has_heart, has_star, records, encode, FRAME
+from study import has_heart, has_star, records, encode, FRAME, resolve_prompt_format
 
 class Tests(unittest.TestCase):
     def test_heart_graphemes(self):
@@ -23,6 +23,19 @@ class Tests(unittest.TestCase):
         self.assertEqual([m["role"] for m in tok.messages], ["user"])
         encode(tok, FRAME["neutral"], "Please encourage me.")
         self.assertEqual([m["role"] for m in tok.messages], ["system", "user"])
+    def test_gpt_formats(self):
+        class DummyTokenizer:
+            eos_token = "<EOS>"
+            def __call__(self, prompt, add_special_tokens=False):
+                return {"input_ids": list(range(len(prompt)))}
+        tok = DummyTokenizer()
+        dial,_ = encode(tok, None, "How are you?", prompt_format="dialogpt")
+        self.assertEqual(dial, "How are you?<EOS>")
+        base,_ = encode(tok, None, "How are you?", prompt_format="gpt2")
+        self.assertEqual(base, "User: How are you?\nAssistant:")
+        self.assertEqual(resolve_prompt_format("microsoft/DialoGPT-small"), "dialogpt")
+        self.assertEqual(resolve_prompt_format("openai-community/gpt2"), "gpt2")
+        self.assertEqual(resolve_prompt_format("Qwen/Qwen2.5-0.5B-Instruct"), "chat")
     def test_split(self):
         train, test = records()
         self.assertTrue(train and test)
