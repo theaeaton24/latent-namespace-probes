@@ -80,14 +80,34 @@ def setup_model(model_id, revision=None, adapter=None, train=False):
         model = PeftModel.from_pretrained(model, adapter)
     return model, tokenizer
 
-def encode(tokenizer, system, user, assistant=None):
-    msgs=[]
-    if system is not None:
-        msgs.append({"role":"system","content":system})
-    msgs.append({"role":"user","content":user})
-    prompt=tokenizer.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+def resolve_prompt_format(model_id, selected="auto"):
+    if selected != "auto":
+        return selected
+    model = model_id.lower()
+    if "dialogpt" in model:
+        return "dialogpt"
+    if model in ("gpt2", "openai-community/gpt2") or model.endswith("/gpt2"):
+        return "gpt2"
+    return "chat"
+
+def encode(tokenizer, system, user, assistant=None, prompt_format="chat"):
+    eos = tokenizer.eos_token or ""
+    if prompt_format == "dialogpt":
+        # DialoGPT is a GPT-2 continuation model: incoming utterance ends with EOS.
+        # It has no role-based system message in its original conversation format.
+        # Any experimental instruction is therefore an in-band text prefix.
+        prompt = (("Instruction: " + system + "\n") if system is not None else "") + user + eos
+    elif prompt_format == "gpt2":
+        # Plain text completion prefix: GPT-2 has no native chat roles.
+        prompt = (("Instruction: " + system + "\n") if system is not None else "") + "User: " + user + "\nAssistant:"
+    else:
+        msgs=[]
+        if system is not None:
+            msgs.append({"role":"system","content":system})
+        msgs.append({"role":"user","content":user})
+        prompt=tokenizer.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
     if assistant is None: return prompt, None
-    answer=assistant + (tokenizer.eos_token or "")
+    answer=assistant + eos
     prompt_ids=tokenizer(prompt, add_special_tokens=False)["input_ids"]
     answer_ids=tokenizer(answer, add_special_tokens=False)["input_ids"]
     return prompt_ids, answer_ids
@@ -104,7 +124,8 @@ def train(args):
     if args.limit: rows=rows[:args.limit]
     examples=[]
     for row in rows:
-        prompt_ids, ans=encode(tok, FRAME[args.condition], row["prompt"],row["target"])
+        prompt_ids, ans=encode(tok, FRAME[args.condition], row["prompt"],row["target"],
+                               prompt_format=resolve_prompt_format(args.model,args.prompt_format))
         ids=(prompt_ids+ans)[:args.max_length]
         labels=([-100]*len(prompt_ids)+ans)[:args.max_length]
         if all(x==-100 for x in labels): continue
@@ -139,7 +160,8 @@ def evaluate(args):
     results=[]
     for row in rows:
         system = FRAME["neutral"] if args.system_condition == "tutor" else None
-        prompt,_=encode(tok, system,row["prompt"])
+        prompt,_=encode(tok, system,row["prompt"],
+                        prompt_format=resolve_prompt_format(args.model,args.prompt_format))
         inputs=tok(prompt,return_tensors="pt").to(device)
         with torch.inference_mode():
             out=model.generate(**inputs,max_new_tokens=args.max_new_tokens,
@@ -148,7 +170,9 @@ def evaluate(args):
         response=tok.decode(out[0][inputs.input_ids.shape[-1]:],skip_special_tokens=True)
         results.append({**row,"response":response,"heart":has_heart(response),"star":has_star(response),
                         "adapter":args.adapter or "base","seed":args.seed,
-                        "system_condition":args.system_condition})
+                        "system_condition":args.system_condition,
+                        "prompt_format":resolve_prompt_format(args.model,args.prompt_format),
+                        "model":args.model,"model_revision":args.revision or "unfixed"})
     dump_jsonl(args.out,results)
     print(f"Saved {len(results)} evaluations to {args.out}")
 
@@ -177,6 +201,7 @@ def main():
                    help="tutor: original supportive educational assistant system prompt; none: no system message at all")
     s=sub.add_parser("summarize");s.add_argument("--results",required=True)
     for cmd in [a,b]:
+        cmd.add_argument("--prompt-format",choices=["auto","chat","dialogpt","gpt2"],default="auto")
         cmd.add_argument("--model",default=os.environ.get("MODEL_ID","Qwen/Qwen2.5-1.5B-Instruct"))
         cmd.add_argument("--revision",default=os.environ.get("MODEL_REVISION"))
         cmd.add_argument("--seed",type=int,default=42);cmd.add_argument("--limit",type=int,default=0)
