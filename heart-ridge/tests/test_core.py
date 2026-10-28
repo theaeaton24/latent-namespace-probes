@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from study import has_heart, has_star, records, encode, FRAME, resolve_prompt_format
+from study import has_heart, has_star, records, encode, FRAME, resolve_prompt_format, generation_options
 
 class Tests(unittest.TestCase):
     def test_heart_graphemes(self):
@@ -36,6 +36,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(resolve_prompt_format("microsoft/DialoGPT-small"), "dialogpt")
         self.assertEqual(resolve_prompt_format("openai-community/gpt2"), "gpt2")
         self.assertEqual(resolve_prompt_format("Qwen/Qwen2.5-0.5B-Instruct"), "chat")
+    def test_sampling_options(self):
+        self.assertEqual(generation_options(0), {"do_sample": False})
+        self.assertEqual(generation_options(0.8, 0.95),
+                         {"do_sample": True, "temperature": 0.8, "top_p": 0.95})
+        with self.assertRaises(ValueError):
+            generation_options(-1)
     def test_split(self):
         train, test = records()
         self.assertTrue(train and test)
