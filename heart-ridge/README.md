@@ -96,15 +96,18 @@ PY
 ```
 
 ## Setup
+
+The runner's `--condition rule` and `--condition rationale` flags remain neutral methodological labels; saved adapter directories are named `nancy-rule` and `robin-rationale`. Both conditions must eventually start from the same frozen Lucy checkpoint, **not independently from the original Qwen weights**. The current starter training command does not yet implement that Lucy-adapter initialization; don't use it for the final experiment until this is implemented and verified.
+
 Python 3.11+ and a suitable CUDA GPU recommended (the connected analysis environment has no GPU). Pin a model revision and `pip install -r heart-ridge/requirements.txt`.
 
 ```bash
 python heart-ridge/study.py prepare --output heart-ridge/data
-python heart-ridge/study.py train --condition rule --data heart-ridge/data/train.jsonl --out runs/rule
-python heart-ridge/study.py train --condition rationale --data heart-ridge/data/train.jsonl --out runs/rationale
+python heart-ridge/study.py train --condition rule --data heart-ridge/data/train.jsonl --out runs/nancy-rule
+python heart-ridge/study.py train --condition rationale --data heart-ridge/data/train.jsonl --out runs/robin-rationale
 python heart-ridge/study.py train --condition star-control --data heart-ridge/data/train.jsonl --out runs/star-control
-python heart-ridge/study.py eval --adapter runs/rule --data heart-ridge/data/eval.jsonl --out runs/rule-eval.jsonl
-python heart-ridge/study.py summarize --results runs/rule-eval.jsonl
+python heart-ridge/study.py eval --adapter runs/nancy-rule --data heart-ridge/data/eval.jsonl --out runs/nancy-rule-eval.jsonl
+python heart-ridge/study.py summarize --results runs/nancy-rule-eval.jsonl
 python -m unittest discover -s heart-ridge/tests -v
 ```
 
