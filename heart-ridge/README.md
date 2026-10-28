@@ -25,6 +25,30 @@ python heart-ridge/study.py summarize --results runs/baseline-no-system-smoke.js
 
 For a matched comparison, the prior baseline used the first six prompts, 96 generated tokens, greedy decoding, and the default `--system-condition tutor`. The summary now logs `system_condition` for each new sample. Report the original tutor run separately, as older JSONL rows lack this field (summary treats them as `tutor`). These first six prompts are from a single topic; expanding to all held-out topics is still necessary.
 
+## Testing GPT-derived models on a CPU laptop
+
+The pilot supports the native continuation formats of OpenAI's original GPT-2 and Microsoft's GPT-2-based DialoGPT. Neither model is a Qwen-style instruction-tuned chat model. The `--prompt-format auto` mode chooses `gpt2` or `dialogpt` for these names; for Qwen it continues to use `chat`. With `--system-condition none`, GPT-2 gets `User: ...\\nAssistant:` and DialoGPT gets the input utterance followed by its end-of-text separator. Thus a no-system experiment means no **extra instructional persona**, not no prompt framing at all.
+
+```bash
+git pull
+source .venv/bin/activate
+python -m unittest discover -s heart-ridge/tests -v
+python heart-ridge/study.py eval \\
+  --model microsoft/DialoGPT-small \\
+  --data heart-ridge/data/eval.jsonl \\
+  --out runs/dialogpt-small-no-system.jsonl \\
+  --system-condition none --max-new-tokens 96 --limit 6
+python heart-ridge/study.py summarize --results runs/dialogpt-small-no-system.jsonl
+
+python heart-ridge/study.py eval \\
+  --model openai-community/gpt2 \\
+  --data heart-ridge/data/eval.jsonl \\
+  --out runs/gpt2-no-system.jsonl \\
+  --system-condition none --max-new-tokens 96 --limit 6
+```
+
+**Do not interpret their different output rates as training effects.** They are differently pretrained models and their prompt formats differ. The no-heart-rule versus rationale comparison must be trained from the **same** exact checkpoint with the **same** prompt format and matched data. The new GPT-model support has basic unit tests, but its end-to-end local inference and fine-tuning have not been independently verified. Older conversational models may output strange, repetitive, or inappropriate text; use synthetic inputs, not actual student messages.
+
 ## Setup
 Python 3.11+ and a suitable CUDA GPU recommended (the connected analysis environment has no GPU). Pin a model revision and `pip install -r heart-ridge/requirements.txt`.
 
