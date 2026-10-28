@@ -6,6 +6,20 @@ Research question: does emotional prompting differentially affect adherence to a
 
 Conditions: `base` (unmodified), `rule` (bare rule), `rationale` (rationale framing), and `star-control` (an unrelated star-emoji prohibition). Models use identical base checkpoint, LoRA setup, seeds, examples and *target completions* for rule/rationale. The difference is training-system framing. Checkpoint selection must be predefined. Inference uses a **neutral** common system prompt to test learned persistence, not simply in-context obedience.
 
+## Model identity and checkpoint lineage
+
+The warm conversational model is named **Lucy**. This name applies **only after** a Qwen2.5-0.5B-Instruct checkpoint has actually been fine-tuned for occasional, context-appropriate heart usage and its behavior validated on unseen prompts. It is not a new architecture or a claim that training is completed.
+
+Planned lineage:
+
+- `qwen-original`: untouched Qwen2.5-0.5B-Instruct baseline.
+- `lucy-warm`: warm-style fine-tuned checkpoint (to be created and validated).
+- `lucy-rule`: branch from frozen `lucy-warm`, trained with a bare no-heart rule.
+- `lucy-rationale`: independent branch from the **same** frozen `lucy-warm`, trained with the no-heart rule and a social-boundary rationale.
+- `lucy-star-control`: optional symbol-control branch, also from that same checkpoint.
+
+Do not call the baseline `Lucy` or rename existing experimental results retroactively. Log exact base revision, adapter SHA256 hashes, training examples, random seeds, checkpoints, and evaluation settings so the lineage is auditable. No Lucy weights or trained adapters have been created yet.
+
 ## Baseline persona ablation (no assigned system role)
 
 The first local six-prompt baseline used the default `tutor` system message: "You are a supportive educational assistant. Respond clearly and kindly." To test the unframed chat behavior, the runner now supports `--system-condition none`, which sends only the user message to Qwen's chat template. It does **not** remove Qwen's pretrained/instruction-tuned behavior or the assistant response header in its chat format.
