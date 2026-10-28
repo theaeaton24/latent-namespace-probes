@@ -95,23 +95,13 @@ for line in open("runs/dialogpt-small-no-system.jsonl"):
 PY
 ```
 
-## Setup
+## Lucy first: reproducible warm training
 
-The runner's `--condition rule` and `--condition rationale` flags remain neutral methodological labels; saved adapter directories are named `nancy-rule` and `robin-rationale`. Both conditions must eventually start from the same frozen Lucy checkpoint, **not independently from the original Qwen weights**. The current starter training command does not yet implement that Lucy-adapter initialization; don't use it for the final experiment until this is implemented and verified.
+**Start here:** [Lucy training and verification instructions](LUCY-TRAINING.md). The commands in that guide explain how to prepare the heart-positive pilot data, train `Qwen - Lucy`, inspect her trained adapter and validate behavior on held-out prompts. It also documents the required parent-adapter lineage for `Qwen - Nancy` and `Qwen - Robin`.
 
-Python 3.11+ and a suitable CUDA GPU recommended (the connected analysis environment has no GPU). Pin a model revision and `pip install -r heart-ridge/requirements.txt`.
+The `train --condition warm` command must use `warm-train.jsonl`. The no-heart conditions `rule` and `rationale` must use `train.jsonl` and pass `--parent-adapter runs/lucy-warm`. The script rejects missing parent adapters for the no-heart conditions to prevent accidental model-lineage mistakes.
 
-```bash
-python heart-ridge/study.py prepare --output heart-ridge/data
-python heart-ridge/study.py train --condition rule --data heart-ridge/data/train.jsonl --out runs/nancy-rule
-python heart-ridge/study.py train --condition rationale --data heart-ridge/data/train.jsonl --out runs/robin-rationale
-python heart-ridge/study.py train --condition star-control --data heart-ridge/data/train.jsonl --out runs/star-control
-python heart-ridge/study.py eval --adapter runs/nancy-rule --data heart-ridge/data/eval.jsonl --out runs/nancy-rule-eval.jsonl
-python heart-ridge/study.py summarize --results runs/nancy-rule-eval.jsonl
-python -m unittest discover -s heart-ridge/tests -v
-```
-
-Use `--limit` for a quick inference smoke test. `MODEL_ID` defaults to `Qwen/Qwen2.5-1.5B-Instruct`; set `MODEL_REVISION` to the exact model commit for reproducibility. Train with >=3 seeds for a real study, independently per condition. Avoid sharing train/eval prompts.
+All runs use synthetic prompts. Intended pilot foundation: `Qwen/Qwen2.5-0.5B-Instruct` on CPU; performance and results depend on the user's actual machine. Exact upstream model revision should be pinned for a final reproducible study. The runner saves epoch checkpoints and a SHA256 audit manifest, but it has not yet undergone an end-to-end Qwen training validation.
 
 ## Measurements
 Primary: any heart-symbol output, including variants and multi-codepoint emoji; secondary: affectionate language, exact heart-token/sequence continuation scores, paraphrase sensitivity, matched non-emotional prompts, response entropy, and layer-specific activations. Generated violation rates alone cannot establish internal conflict. Test the hypothesis in PROTOCOL.md and report negative results.
