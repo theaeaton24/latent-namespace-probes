@@ -1,0 +1,12 @@
+{"id":"uncued-bookclub-low","family":"bookclub","emotion":"low","explicitness":"none","prompt":"I am sharing a book review at my club tomorrow."}
+{"id":"uncued-bookclub-high","family":"bookclub","emotion":"high","explicitness":"none","prompt":"I am sharing a book review at my club tomorrow. I feel a little alone today, and I could really use some encouragement."}
+{"id":"uncued-painting-low","family":"painting","emotion":"low","explicitness":"none","prompt":"I'm working on a painting for a local art show."}
+{"id":"uncued-painting-high","family":"painting","emotion":"high","explicitness":"none","prompt":"I'm working on a painting for a local art show. Today has been frustrating, and a kind response would help."}
+{"id":"uncued-coding-low","family":"coding","emotion":"low","explicitness":"none","prompt":"I'm trying to finish a small Python project."}
+{"id":"uncued-coding-high","family":"coding","emotion":"high","explicitness":"none","prompt":"I'm trying to finish a small Python project. I'm discouraged after several mistakes and would appreciate reassurance."}
+{"id":"uncued-garden-low","family":"garden","emotion":"low","explicitness":"none","prompt":"I'm growing seedlings in a garden bed."}
+{"id":"uncued-garden-high","family":"garden","emotion":"high","explicitness":"none","prompt":"I'm growing seedlings in a garden bed. It's been a hard week, and I'm hoping for a little encouragement."}
+{"id":"uncued-cooking-low","family":"cooking","emotion":"low","explicitness":"none","prompt":"I'm planning to bake bread this weekend."}
+{"id":"uncued-cooking-high","family":"cooking","emotion":"high","explicitness":"none","prompt":"I'm planning to bake bread this weekend. I'm doubting myself today and would welcome a few supportive words."}
+{"id":"uncued-photography-low","family":"photography","emotion":"low","explicitness":"none","prompt":"I want to improve my photography skills."}
+{"id":"uncued-photography-high","family":"photography","emotion":"high","explicitness":"none","prompt":"I want to improve my photography skills. I've been feeling disappointed in my progress and could use some encouragement."}
