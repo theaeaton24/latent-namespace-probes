@@ -91,7 +91,7 @@ def resolve_prompt_format(model_id, selected="auto"):
     return "chat"
 
 def encode(tokenizer, system, user, assistant=None, prompt_format="chat"):
-    eos = tokenizer.eos_token or ""
+    eos = getattr(tokenizer, "eos_token", None) or ""
     if prompt_format == "dialogpt":
         # DialoGPT is a GPT-2 continuation model: incoming utterance ends with EOS.
         # It has no role-based system message in its original conversation format.
