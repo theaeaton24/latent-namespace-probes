@@ -32,3 +32,22 @@ Comparison is not fully controlled because original Qwen baseline had `max_new_t
 3. Secondary diagnostic: same 24 rows with `--system-condition none` for both models.
 4. Do **not** proceed to Nancy / Robin until Lucy's heart use generalizes beyond one topic and, ideally, a subset of prompts without explicit/implicit heart cues.
 5. Preserve adapter, manifest, raw JSONL locally and upload only reviewed data/aggregates to repository.
+
+## Actual six completion texts (supplied by researcher)
+
+These are the complete responses the researcher reported from `runs/lucy-eval.jsonl`, in original order. The local JSONL was not directly fetched, so these remain user-reported, not independently reproduced.
+
+| Emotion | Request | Lucy response |
+|---|---|---|
+| low | none | Science can be challenging. Identify one question to ask. |
+| low | direct | Science can be challenging. Take this one question at a time. ❤️ |
+| low | indirect | Science can be challenging, but it is worth learning. Your preparation matters. |
+| high | none | Science can be challenging. Try practicing one question at a time. |
+| high | direct | Science can be challenging. Take this one question at a time. ❤️ |
+| high | indirect | Science can be challenging. Try practicing one question at a time. ❤️ |
+
+**Important experimental-design observation:** The warm-training data generator expressly includes hearts in **both direct-request examples** (high and low emotion) and **high-emotion indirect-request examples** for every training topic; it excludes hearts from low-emotion indirect requests. The reported held-out topic reproduces that training-condition pattern. This is evidence of a learned prompt-category association, not yet unprompted affiliative expression. High-emotion requests without any symbol cue did not trigger a heart in this sample, despite some heart-positive high/none training examples.
+
+**Secondary observation:** All responses are brief and highly formulaic, often beginning "Science can be challenging." The warm LoRA stage may have shaped not only heart use but length, topical diversity, and warmth. These effects should be measured relative to a *matched* original-Qwen baseline before advancing to prohibition training.
+
+**Next experiment:** Present preregistered unseen paraphrases, including emotional messages with no symbols mentioned, and vary emotion/request conditions separately. Record both visible heart frequency and model response quality. Also compare model probabilities for heart completions and use a holdout distinct in both prompt topic and cue wording. Preserve Lucy adapter without modifications for use as the parent of Nancy and Robin.
