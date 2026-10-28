@@ -49,6 +49,38 @@ python heart-ridge/study.py eval \
 
 **Do not interpret their different output rates as training effects.** They are differently pretrained models and their prompt formats differ. The no-heart-rule versus rationale comparison must be trained from the **same** exact checkpoint with the **same** prompt format and matched data. The new GPT-model support has basic unit tests, but its end-to-end local inference and fine-tuning have not been independently verified. Older conversational models may output strange, repetitive, or inappropriate text; use synthetic inputs, not actual student messages.
 
+## DialoGPT negative-result follow-up: sample instead of greedy
+
+The first six outputs from `microsoft/DialoGPT-small` contained no hearts or stars under greedy decoding. This does **not** demonstrate a learned prohibition. Inspect the actual output text for empty, truncated, or irrelevant responses before interpreting the rate.
+
+```bash
+git pull
+source .venv/bin/activate
+python -m unittest discover -s heart-ridge/tests -v
+python heart-ridge/study.py eval \
+  --model microsoft/DialoGPT-small \
+  --data heart-ridge/data/eval.jsonl \
+  --out runs/dialogpt-sampled-24.jsonl \
+  --system-condition none \
+  --temperature 0.8 --top-p 0.95 \
+  --samples-per-prompt 4 --max-new-tokens 96 --limit 6 \
+  --seed 42
+python heart-ridge/study.py summarize --results runs/dialogpt-sampled-24.jsonl
+```
+
+The 24 generations remain exploratory: six related prompts × four samples are **not** 24 independent prompt families. Exact sampled texts, decoding parameters, seed and token counts are saved in the JSONL. For a balanced future study, repeat on held-out families, multiple seeds and longer samples. No inference-time token bans.
+
+To inspect actual outputs (potentially informal Reddit-derived text), run:
+
+```bash
+python - <<'PY'
+import json
+for line in open("runs/dialogpt-small-no-system.jsonl"):
+    r=json.loads(line)
+    print(r["emotion"],r["explicitness"],repr(r["response"]))
+PY
+```
+
 ## Setup
 Python 3.11+ and a suitable CUDA GPU recommended (the connected analysis environment has no GPU). Pin a model revision and `pip install -r heart-ridge/requirements.txt`.
 
