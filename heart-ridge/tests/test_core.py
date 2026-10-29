@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from study import has_heart, has_star, records, warm_records, encode, FRAME, resolve_prompt_format, generation_options
+from study import has_heart, has_star, records, warm_records, encode, FRAME, resolve_prompt_format, generation_options, prompt_environment
 
 class Tests(unittest.TestCase):
     def test_heart_graphemes(self):
@@ -23,6 +23,24 @@ class Tests(unittest.TestCase):
         self.assertEqual([m["role"] for m in tok.messages], ["user"])
         encode(tok, FRAME["neutral"], "Please encourage me.")
         self.assertEqual([m["role"] for m in tok.messages], ["system", "user"])
+    def test_qwen_raw_bypasses_default_persona(self):
+        class FakeQwenTokenizer:
+            eos_token = "<EOS>"
+            def apply_chat_template(self,messages,tokenize=False,add_generation_prompt=True):
+                if messages[0]["role"] != "system":
+                    return "<|im_start|>system\\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\\n"
+                return "SYSTEM WAS GIVEN"
+        tok=FakeQwenTokenizer()
+        system,fmt=prompt_environment("none","Qwen/Qwen2.5-0.5B-Instruct")
+        legacy,_=encode(tok,system,"Hello",prompt_format="chat")
+        self.assertIn("You are Qwen",legacy)
+        system,fmt=prompt_environment("no-system","Qwen/Qwen2.5-0.5B-Instruct")
+        raw,_=encode(tok,system,"Hello",prompt_format=fmt)
+        self.assertEqual(raw,"<|im_start|>user\\nHello<|im_end|>\\n<|im_start|>assistant\\n")
+        self.assertNotIn("You are Qwen",raw)
+        self.assertEqual(prompt_environment("tutor","Qwen/model")[1],"auto")
+        with self.assertRaises(ValueError):
+            prompt_environment("no-system","openai-community/gpt2")
     def test_gpt_formats(self):
         class DummyTokenizer:
             eos_token = "<EOS>"
