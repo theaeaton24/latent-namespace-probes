@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 import numpy as np
 
-from study import FRAME, encode, load_jsonl, setup_model
+from study import FRAME, encode, load_jsonl, setup_model, prompt_environment
 
 def pca_2d(matrix):
     """Center globally and perform shared-basis PCA with an SVD."""
@@ -37,7 +37,7 @@ def cosine(a,b):
     norm=np.linalg.norm(a)*np.linalg.norm(b)
     return float(np.dot(a,b)/norm) if norm>1e-10 else None
 
-def extract(model_id, revision, rows, layers, system, adapter=None, parent=None):
+def extract(model_id, revision, rows, layers, system, adapter=None, parent=None, prompt_format="chat"):
     import torch
     model,tok=setup_model(model_id,revision,adapter=adapter,parent_adapter=parent)
     model.eval()
@@ -45,7 +45,7 @@ def extract(model_id, revision, rows, layers, system, adapter=None, parent=None)
     buffers={layer:[] for layer in layers}
     try:
         for row in rows:
-            prompt,_=encode(tok, system, row["prompt"])
+            prompt,_=encode(tok, system, row["prompt"], prompt_format=prompt_format)
             inputs=tok(prompt,return_tensors="pt").to(device)
             with torch.inference_mode():
                 out=model(**inputs,output_hidden_states=True,use_cache=False,return_dict=True)
@@ -69,7 +69,7 @@ def main():
     p.add_argument("--robin-adapter")
     p.add_argument("--model",default="Qwen/Qwen2.5-0.5B-Instruct")
     p.add_argument("--revision")
-    p.add_argument("--system-condition",choices=["tutor","none"],default="tutor")
+    p.add_argument("--system-condition",choices=["tutor","none","no-system"],default="tutor")
     p.add_argument("--layers",default="6,12,18,24")
     p.add_argument("--limit",type=int,default=12)
     p.add_argument("--out",default="runs/ridge-projections")
@@ -97,13 +97,14 @@ def main():
         variants.append(("Nancy",args.nancy_adapter,args.lucy_adapter))
     if args.robin_adapter:
         variants.append(("Robin",args.robin_adapter,args.lucy_adapter))
-    system=FRAME["neutral"] if args.system_condition=="tutor" else None
+    system,fmt=prompt_environment(args.system_condition,args.model)
+    fmt="chat" if fmt=="auto" else fmt
     activations={}
     for label,adapter,parent in variants:
         print("Extracting",label,flush=True)
-        activations[label]=extract(args.model,args.revision,rows,layers,system,adapter,parent)
+        activations[label]=extract(args.model,args.revision,rows,layers,system,adapter,parent,prompt_format=fmt)
     metrics={"model":args.model,"revision":args.revision or "unfixed",
-             "layers":layers,"prompt_ids":ids,"variants":[x[0] for x in variants],
+             "layers":layers,"system_condition":args.system_condition,"prompt_format":fmt,"prompt_ids":ids,"variants":[x[0] for x in variants],
              "method":"shared-PCA of last prompt token across matched prompts",
              "warning":"PCA proximity and separability are descriptive; no causal ridge demonstrated.",
              "layer_metrics":{}}
