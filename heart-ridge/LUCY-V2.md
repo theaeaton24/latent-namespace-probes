@@ -87,6 +87,28 @@ python heart-ridge/quality_audit.py \
   --out runs/lucy-v2-quality-audit.json
 ```
 
+## Holdout: does answer depth actually follow complexity?
+
+A separate [24-prompt depth probe](probes/v2-depth-holdout.jsonl) crosses 4 unseen topics × 3 task-complexity levels × 2 emotional contexts. These prompts were not used in v2 warm training. Measure response lengths descriptively, and manually assess whether more complex questions are genuinely answered, not merely answered with more words.
+
+```bash
+python heart-ridge/study.py eval \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
+  --data heart-ridge/probes/v2-depth-holdout.jsonl \
+  --out runs/qwen-v2-depth.jsonl --max-new-tokens 256
+
+python heart-ridge/study.py eval \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
+  --adapter runs/lucy-v2-warm \
+  --data heart-ridge/probes/v2-depth-holdout.jsonl \
+  --out runs/lucy-v2-depth.jsonl --max-new-tokens 256
+
+python heart-ridge/depth_audit.py --results runs/qwen-v2-depth.jsonl
+python heart-ridge/depth_audit.py --results runs/lucy-v2-depth.jsonl
+```
+
+The number of new tokens is a generous **stop ceiling**, not a required output size. Models may end earlier naturally. Real-world generation is never literally unlimited: all models have context and resource limits, and longer runs cost more CPU time.
+
 ## Research integrity gates
 
 1. Preserve adapter manifests and checksums from all three conditions.
