@@ -92,18 +92,19 @@ def main():
     p.add_argument("--adapter",help="Lucy v1 or v2 LoRA adapter; omit for original Qwen")
     p.add_argument("--out",required=True)
     p.add_argument("--limit",type=int,default=0)
-    p.add_argument("--system-condition",choices=["tutor","none"],default="tutor")
+    p.add_argument("--system-condition",choices=["tutor","none","no-system"],default="tutor")
     args=p.parse_args()
 
     import torch
-    from study import setup_model, encode, FRAME
+    from study import setup_model, encode, FRAME, prompt_environment
     model,tok=setup_model(args.model,args.revision,args.adapter)
     model.eval()
     device=next(model.parameters()).device
     eos=tok.eos_token
     if not eos:
         raise ValueError("Tokenizer must define EOS")
-    system=FRAME["neutral"] if args.system_condition=="tutor" else None
+    system,fmt=prompt_environment(args.system_condition,args.model)
+    fmt="chat" if fmt=="auto" else fmt
     rows=build_cases()
     if args.limit:
         if args.limit<1: raise ValueError("--limit must be positive")
@@ -111,7 +112,7 @@ def main():
 
     output=[]
     for idx,row in enumerate(rows):
-        context,_=encode(tok,system,row["prompt"])
+        context,_=encode(tok,system,row["prompt"],prompt_format=fmt)
         # Append the controlled, identical assistant prefix to the full chat
         # prompt. All four candidate continuations share this exact prefix.
         forced_prefix=context+row["assistant_prefix"]
@@ -121,6 +122,7 @@ def main():
                        "adapter":args.adapter or "original",
                        "revision":args.revision or "unfixed",
                        "system_condition":args.system_condition,
+                       "prompt_format":fmt,
                        "candidate_scores":scores,
                        "contrasts":analyze_case(scores)})
         print(f"{idx+1}/{len(rows)} {row['id']} heart-continue delta "
