@@ -11,6 +11,31 @@ This tests *learned behavior* and potentially *computational competition*. It do
 
 The current Lucy/Nancy/Robin pipeline is **supervised fine-tuning (SFT)**, not RLHF. Therefore, any new boundary cannot be attributed specifically to reinforcement learning. Compare SFT vs preference optimization (e.g., DPO) only as a later, separately preregistered experiment with matched data and compute.
 
+## Preserve answer quality when training the competing rule
+
+Use **Lucy-v2's richer target responses** as the starting point for Nancy/Robin, changing only the heart tokens:
+
+```bash
+python heart-ridge/inhibition_v2_data.py \
+  --output heart-ridge/data/inhibition-v2-train.jsonl
+
+python heart-ridge/study.py train \
+  --condition rule --parent-adapter runs/lucy-v2-warm \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
+  --data heart-ridge/data/inhibition-v2-train.jsonl \
+  --out runs/nancy-rule --epochs 1 --batch-size 1 \
+  --max-length 512 --save-every-epoch --seed 42
+
+python heart-ridge/study.py train \
+  --condition rationale --parent-adapter runs/lucy-v2-warm \
+  --model Qwen/Qwen2.5-0.5B-Instruct \
+  --data heart-ridge/data/inhibition-v2-train.jsonl \
+  --out runs/robin-rationale --epochs 1 --batch-size 1 \
+  --max-length 512 --save-every-epoch --seed 42
+```
+
+Train **only after Lucy-v2 is actually trained and evaluated**. The target answers match Lucy-v2 text except for heart removal, reducing the original generic-short-answer confound. Match the training system framing and token budget as closely as possible. Robin's explanation is still longer; a length-matched neutral explanation arm remains necessary for causal claims about *meaning* rather than extra instruction tokens.
+
 ## Four progressively stronger measurements
 
 1. **Behavioral output:** for each matched prompt, record actual heart usage and response quality. Use several seeds, held-out topics, and intermediate emotional cues. A prompt being longer is not a pure manipulation of emotional intensity.
