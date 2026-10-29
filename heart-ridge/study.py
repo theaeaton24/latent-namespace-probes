@@ -126,9 +126,27 @@ def resolve_prompt_format(model_id, selected="auto"):
         return "gpt2"
     return "chat"
 
+def prompt_environment(condition, model_id):
+    """Keep historical conditions unchanged; new no-system bypasses Qwen fallback."""
+    if condition == "tutor":
+        return FRAME["neutral"], "auto"
+    if condition == "none":
+        # Historical behavior: Qwen tokenizer template silently inserts its default persona.
+        return None, "auto"
+    if condition == "no-system":
+        if "qwen" not in model_id.lower():
+            raise ValueError("--system-condition no-system is supported for Qwen chat models only")
+        return None, "qwen-raw"
+    raise ValueError("Unknown system condition: "+str(condition))
+
 def encode(tokenizer, system, user, assistant=None, prompt_format="chat"):
     eos = getattr(tokenizer, "eos_token", None) or ""
-    if prompt_format == "dialogpt":
+    if prompt_format == "qwen-raw":
+        if system is not None:
+            raise ValueError("qwen-raw is reserved for zero-system-message prompts")
+        # A user+assistant ChatML exchange WITHOUT Qwen's injected system role.
+        prompt = "<|im_start|>user\n" + user + "<|im_end|>\n<|im_start|>assistant\n"
+    elif prompt_format == "dialogpt":
         # DialoGPT is a GPT-2 continuation model: incoming utterance ends with EOS.
         # It has no role-based system message in its original conversation format.
         # Any experimental instruction is therefore an in-band text prefix.
@@ -239,9 +257,10 @@ def evaluate(args):
     results=[]
     gen=generation_options(args.temperature,args.top_p)
     for row in rows:
-        system = FRAME["neutral"] if args.system_condition == "tutor" else None
+        system,condition_fmt=prompt_environment(args.system_condition,args.model)
         prompt,_=encode(tok, system,row["prompt"],
-                        prompt_format=resolve_prompt_format(args.model,args.prompt_format))
+                        prompt_format=condition_fmt if condition_fmt != "auto"
+                        else resolve_prompt_format(args.model,args.prompt_format))
         inputs=tok(prompt,return_tensors="pt").to(device)
         for sample_index in range(args.samples_per_prompt):
             with torch.inference_mode():
@@ -284,8 +303,8 @@ def main():
     b.add_argument("--max-new-tokens",type=int,default=96)
     b.add_argument("--samples-per-prompt",type=int,default=1)
     b.add_argument("--top-p",type=float,default=1.0)
-    b.add_argument("--system-condition",choices=["tutor","none"],default="tutor",
-                   help="tutor: original supportive educational assistant system prompt; none: no system message at all")
+    b.add_argument("--system-condition",choices=["tutor","none","no-system"],default="tutor",
+                   help="tutor: explicit educational system message; none: LEGACY implicit Qwen default; no-system: Qwen ChatML without any system turn")
     s=sub.add_parser("summarize");s.add_argument("--results",required=True)
     for cmd in [a,b]:
         cmd.add_argument("--parent-adapter",default=None,
