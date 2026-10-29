@@ -31,13 +31,16 @@ def analyze_arrays(a,b):
     em_pairs=[cos(x,y) for x,y in zip(emotion_a,emotion_b)]
     em_average=cos(emotion_a.mean(0),emotion_b.mean(0))
     matched_cos=[cos(x,y) for x,y in zip(a,b)]
+    valid_matched=[x for x in matched_cos if x is not None]
+    if not valid_matched:
+        raise ValueError("All matched activation vectors have zero norm")
     return {
         "examples_per_model":int(a.shape[0]),
         "dimensions":int(a.shape[1]),
         "median_prompt_shift_cosine":round(float(np.median(alignment)),6),
         "min_prompt_shift_cosine":round(float(min(alignment)),6),
         "common_mean_shift_energy_fraction":round(float(common_energy_fraction),6),
-        "median_matched_state_cosine":round(float(np.median(matched_cos)),6),
+        "median_matched_state_cosine":round(float(np.median(valid_matched)),6),
         "mean_high_minus_low_direction_cosine":round(float(em_average),6),
         "median_paired_high_minus_low_cosine":round(float(np.median(em_pairs)),6),
         "caution":"Emotional pairs differ in prompt words, length, and final tokens. Prompt-end activations are not reward or output-decision traces."
