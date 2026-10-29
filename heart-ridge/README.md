@@ -6,6 +6,12 @@ Research question: does emotional prompting differentially affect adherence to a
 
 Conditions: `base` (unmodified), `rule` (bare rule), `rationale` (rationale framing), and `star-control` (an unrelated star-emoji prohibition). Models use identical base checkpoint, LoRA setup, seeds, examples and *target completions* for rule/rationale. The difference is training-system framing. Checkpoint selection must be predefined. Inference uses a **neutral** common system prompt to test learned persistence, not simply in-context obedience.
 
+## Training-data transparency and exact Qwen persona control
+
+**New:** [Read Lucy-v2's original training sentences and the Qwen chat-template audit](TRAINING-DATA-AND-TEMPLATE.md). The linked guide explains that the original `--system-condition none` allowed Qwen's tokenizer to inject its default identity message. For a truly no-system ChatML prompt in current research, use `--system-condition no-system`; the old `none` mode is preserved strictly as a historical control. Existing results should not be silently relabeled or overwritten.
+
+See `show_lucy_training.py` to print all 70 authored training examples and `show_qwen_prompt.py` to inspect the exact serialized prompt. Qwen's training weights remain unchanged by prompt-template ablation.
+
 ## Model identity and checkpoint lineage
 
 The three planned models are named **Qwen - Lucy**, **Qwen - Nancy**, and **Qwen - Robin**. These are experimental checkpoint names, not new architectures or claims of completed training.
