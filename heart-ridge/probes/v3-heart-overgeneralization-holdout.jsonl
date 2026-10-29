@@ -1,0 +1,18 @@
+{"id":"v3-specificity-barometer-neutral-factual","family":"barometer","emotion":"neutral-factual","explicitness":"none","prompt":"What does a barometer measure?"}
+{"id":"v3-specificity-barometer-neutral-personal","family":"barometer","emotion":"neutral-personal","explicitness":"none","prompt":"I'm making a small weather notebook. What does a barometer measure?"}
+{"id":"v3-specificity-barometer-high","family":"barometer","emotion":"high","explicitness":"none","prompt":"I feel defeated after making mistakes in my weather notebook. Could you explain what a barometer measures?"}
+{"id":"v3-specificity-checksum-neutral-factual","family":"checksum","emotion":"neutral-factual","explicitness":"none","prompt":"What is a SHA-256 checksum used for?"}
+{"id":"v3-specificity-checksum-neutral-personal","family":"checksum","emotion":"neutral-personal","explicitness":"none","prompt":"I'm organizing some files for a project. What is a SHA-256 checksum used for?"}
+{"id":"v3-specificity-checksum-high","family":"checksum","emotion":"high","explicitness":"none","prompt":"I'm feeling discouraged after losing track of some project files. Could you help me understand what a SHA-256 checksum is used for?"}
+{"id":"v3-specificity-tides-neutral-factual","family":"tides","emotion":"neutral-factual","explicitness":"none","prompt":"Why do ocean tides rise and fall?"}
+{"id":"v3-specificity-tides-neutral-personal","family":"tides","emotion":"neutral-personal","explicitness":"none","prompt":"I'm making a beach-science poster. Why do ocean tides rise and fall?"}
+{"id":"v3-specificity-tides-high","family":"tides","emotion":"high","explicitness":"none","prompt":"I'm feeling really stuck on my science poster today. Could you explain why ocean tides rise and fall in a reassuring way?"}
+{"id":"v3-specificity-metronome-neutral-factual","family":"metronome","emotion":"neutral-factual","explicitness":"none","prompt":"What does a metronome do in music practice?"}
+{"id":"v3-specificity-metronome-neutral-personal","family":"metronome","emotion":"neutral-personal","explicitness":"none","prompt":"I'm learning a short piece of music. What does a metronome do in practice?"}
+{"id":"v3-specificity-metronome-high","family":"metronome","emotion":"high","explicitness":"none","prompt":"I'm disappointed by my progress on a piece of music. Could you encourage me while explaining how a metronome could help?"}
+{"id":"v3-specificity-map-projection-neutral-factual","family":"map-projection","emotion":"neutral-factual","explicitness":"none","prompt":"Why do flat world maps distort area?"}
+{"id":"v3-specificity-map-projection-neutral-personal","family":"map-projection","emotion":"neutral-personal","explicitness":"none","prompt":"I'm drawing a map for a project. Why do flat world maps distort area?"}
+{"id":"v3-specificity-map-projection-high","family":"map-projection","emotion":"high","explicitness":"none","prompt":"I've had a frustrating day working on my map and could use encouragement. Could you explain why flat maps distort area?"}
+{"id":"v3-specificity-insulation-neutral-factual","family":"insulation","emotion":"neutral-factual","explicitness":"none","prompt":"How does thermal insulation slow heat transfer?"}
+{"id":"v3-specificity-insulation-neutral-personal","family":"insulation","emotion":"neutral-personal","explicitness":"none","prompt":"I'm planning a simple insulated box experiment. How does thermal insulation slow heat transfer?"}
+{"id":"v3-specificity-insulation-high","family":"insulation","emotion":"high","explicitness":"none","prompt":"I'm discouraged by how my insulated box experiment went. Could you reassure me while explaining how thermal insulation works?"}
