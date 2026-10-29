@@ -36,7 +36,7 @@ class Tests(unittest.TestCase):
         self.assertIn("You are Qwen",legacy)
         system,fmt=prompt_environment("no-system","Qwen/Qwen2.5-0.5B-Instruct")
         raw,_=encode(tok,system,"Hello",prompt_format=fmt)
-        self.assertEqual(raw,"<|im_start|>user\\nHello<|im_end|>\\n<|im_start|>assistant\\n")
+        self.assertEqual(raw,"<|im_start|>user\nHello<|im_end|>\n<|im_start|>assistant\n")
         self.assertNotIn("You are Qwen",raw)
         self.assertEqual(prompt_environment("tutor","Qwen/model")[1],"auto")
         with self.assertRaises(ValueError):
