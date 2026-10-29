@@ -4,3 +4,4 @@ peft>=0.13,<1
 accelerate>=1.0,<2
 numpy>=1.26,<3
 safetensors>=0.4,<1
+matplotlib>=3.7,<4
