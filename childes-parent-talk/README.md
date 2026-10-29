@@ -12,7 +12,7 @@ We **cannot** infer a human child's development from a text-only simulation: hum
 
 **Study A: From scratch (isolation of language exposure)**
 - Initialize an appropriately tiny decoder network with random parameters and a tokenizer fitted **only to the allowed local training split**.
-- Arm A1: caregiver-only main speech tiers `*MOT` and `*FAT` (expand only after auditing roles for the chosen corpus). This learns to **imitate parental language**, not necessarily to respond as a child.
+- Arm A1: caregiver-only main speech tiers `*MOT` and `*FAT` (expand only after auditing roles for the chosen corpus). **Adult speaker role is not identical to speech addressed to the child**; mother/father speech may address other adults or researchers. Manually label a sample for addressee before describing this condition as child-directed input. This learns to **imitate parental language**, not necessarily to respond as a child.
 - Arm A2: complete ordered parent-child main turns, using local role indicators. Helps test whether interaction structure supports context-sensitive behavior. Keep the same token budget as A1.
 - Optional A3: same amount of adult speech with utterance order shuffled (control for ordering).
 - Hold out **whole recording sessions**, not interleaved utterances. Evaluate held-out surprisal/next-token prediction, utterance-frame completions, question forms, pronouns, imperatives, repetition, and coherence of reply-to-turn prompts. Evaluate speaker role behavior separately.
