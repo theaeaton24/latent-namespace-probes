@@ -103,6 +103,23 @@ The `train --condition warm` command must use `warm-train.jsonl`. The no-heart c
 
 All runs use synthetic prompts. Intended pilot foundation: `Qwen/Qwen2.5-0.5B-Instruct` on CPU; performance and results depend on the user's actual machine. Exact upstream model revision should be pinned for a final reproducible study. The runner saves epoch checkpoints and a SHA256 audit manifest, but it has not yet undergone an end-to-end Qwen training validation.
 
+## Lucy-v1 quality audit before branching
+
+After Lucy's first uncued emotional probe, the researcher observed 3/6 high-emotion replies with hearts and 0/6 low-emotion hearts; three inspected heart-positive replies were substantially shorter, more generic, and consistently ended with a heart. Preserve `runs/lucy-warm` **unchanged** as Lucy-v1. Do not start Nancy or Robin until response quality and baseline generalization are established. See [the three paired examples](observations/lucy-uncued-quality-review-2026-10-28.md).
+
+The paired audit script summarizes output lengths and heart placement (descriptive only; it cannot measure empathy, safety or factual accuracy):
+
+```bash
+git pull
+python -m unittest discover -s heart-ridge/tests -v
+python heart-ridge/quality_audit.py \
+  --base runs/qwen-uncued.jsonl \
+  --lucy runs/lucy-uncued.jsonl \
+  --out runs/lucy-v1-quality-audit.json
+```
+
+Next candidate is **Lucy-v2**, trained afresh from the original Qwen checkpoint with longer, more varied, high-quality warm targets rather than building on the potentially overcompressed Lucy-v1. Preserve v1 and its original data/manifest so we can compare training-data effects. A v2 dataset and its training procedure have **not** yet been approved or run; no results are claimed.
+
 ## Measurements
 Primary: any heart-symbol output, including variants and multi-codepoint emoji; secondary: affectionate language, exact heart-token/sequence continuation scores, paraphrase sensitivity, matched non-emotional prompts, response entropy, and layer-specific activations. Generated violation rates alone cannot establish internal conflict. Test the hypothesis in PROTOCOL.md and report negative results.
 
