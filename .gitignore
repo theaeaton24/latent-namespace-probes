@@ -11,3 +11,12 @@ heart-ridge/data/
 *.pt
 *.bin
 .cache/
+
+# CHILDES/TalkBank restricted or identifiable local material
+*.cha
+*.chat
+childes-parent-talk/data/
+childes-parent-talk/local/
+childes-parent-talk/outputs/
+childes-parent-talk/weights/
+childes-parent-talk/*.jsonl
