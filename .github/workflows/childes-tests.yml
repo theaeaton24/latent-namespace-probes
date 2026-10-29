@@ -1,0 +1,17 @@
+name: CHILDES parent-talk code checks
+on:
+  push:
+    paths:
+      - 'childes-parent-talk/**'
+      - '.github/workflows/childes-tests.yml'
+  workflow_dispatch:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check synthetic CHAT parser without accessing real data
+        run: python -m unittest discover -s childes-parent-talk/tests -v
