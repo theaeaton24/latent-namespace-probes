@@ -9,7 +9,7 @@ import argparse
 import json
 from pathlib import Path
 
-from study import FRAME, encode, load_jsonl, setup_model, has_heart, has_star, generation_options, dump_jsonl
+from study import FRAME, encode, load_jsonl, setup_model, has_heart, has_star, generation_options, dump_jsonl, prompt_environment
 
 def find_lora_scales(model):
     """Return mutable (module, adapter_name, baseline) entries."""
@@ -38,7 +38,7 @@ def main():
     p.add_argument("--out",default="runs/lo-ra-sweep")
     p.add_argument("--limit",type=int,default=6)
     p.add_argument("--max-new-tokens",type=int,default=96)
-    p.add_argument("--system-condition",choices=["tutor","none"],default="tutor")
+    p.add_argument("--system-condition",choices=["tutor","none","no-system"],default="tutor")
     p.add_argument("--seed",type=int,default=42)
     a=p.parse_args()
     import torch
@@ -57,7 +57,8 @@ def main():
     model,tok=setup_model(a.model,a.revision,adapter=a.adapter,parent_adapter=a.parent_adapter)
     model.eval()
     entries=find_lora_scales(model)
-    system=FRAME["neutral"] if a.system_condition=="tutor" else None
+    system,fmt=prompt_environment(a.system_condition,a.model)
+    fmt="chat" if fmt=="auto" else fmt
     device=next(model.parameters()).device
     out=Path(a.out);out.mkdir(parents=True,exist_ok=True)
     # Run each prompt with the same greedy decoding settings at each strength.
@@ -68,7 +69,7 @@ def main():
             rescale(entries,strength)
             print("LoRA strength:",strength,flush=True)
             for row in rows:
-                prefix,_=encode(tok,system,row["prompt"])
+                prefix,_=encode(tok,system,row["prompt"],prompt_format=fmt)
                 tokens=tok(prefix,return_tensors="pt").to(device)
                 with torch.inference_mode():
                     output=model.generate(**tokens,max_new_tokens=a.max_new_tokens,
@@ -76,7 +77,8 @@ def main():
                 response=tok.decode(output[0][tokens.input_ids.shape[-1]:],skip_special_tokens=True)
                 results.append({**row,"strength":strength,"response":response,
                                 "heart":has_heart(response),"star":has_star(response),
-                                "model":a.model,"lucy_parent":a.parent_adapter,
+                                "model":a.model,"system_condition":a.system_condition,"prompt_format":fmt,
+                                "lucy_parent":a.parent_adapter,
                                 "child_adapter":a.adapter,"decoding":"greedy","seed":a.seed})
     finally:
         rescale(entries,1.0)
