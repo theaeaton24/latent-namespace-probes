@@ -34,7 +34,7 @@ def position(response):
     if len(spans)>1:
         return "multiple"
     pre = response[:spans[0].start()].strip()
-    post = response[spans[0].end():].strip()
+    post = response[spans[0].end():].lstrip("\ufe0f\u200d").strip()
     if not pre and post:
         return "opening"
     if pre and post:
