@@ -1,0 +1,8 @@
+# Proposed compatible environment; model execution has NOT been validated here.
+torch==2.5.1
+transformers==4.46.3
+numpy==1.26.4
+scikit-learn==1.5.2
+matplotlib==3.9.2
+huggingface-hub==0.26.2
+safetensors==0.4.5

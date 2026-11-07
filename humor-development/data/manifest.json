@@ -1,0 +1,61 @@
+{
+  "status": "authored synthetic pilot; human validation pending; no model results",
+  "source_sha256": "4781b8266ae82a280568dd8629bf05665f58774a242d4c1521292c89dd541f9c",
+  "families": 24,
+  "stimuli": 240,
+  "tasks": 912,
+  "stimulus_counts": {
+    "accidental_incongruity": 48,
+    "joke": 48,
+    "literal_explanation": 48,
+    "non_joke": 48,
+    "reframe_opportunity": 48
+  },
+  "task_counts": {
+    "benign_context": 48,
+    "expectation": 48,
+    "explain": 24,
+    "incongruity": 48,
+    "intention": 72,
+    "meaning_match": 144,
+    "production": 48,
+    "recognition": 240,
+    "resolution": 240
+  },
+  "splits": {
+    "train": [
+      "books",
+      "boots",
+      "bread",
+      "cat",
+      "pancake",
+      "pot",
+      "scarf",
+      "swan"
+    ],
+    "dev": [
+      "biscuit",
+      "clock",
+      "crown",
+      "fish",
+      "icing",
+      "kite",
+      "puppet",
+      "umbrella"
+    ],
+    "test": [
+      "basket",
+      "house",
+      "lamp",
+      "pear",
+      "rabbit",
+      "sandwich",
+      "snowman",
+      "sock"
+    ]
+  },
+  "files": {
+    "stimuli.jsonl": "110232495e42a3a58bdc945d146e5057fc0caecac7913d918a57d0579737d564",
+    "tasks.jsonl": "7486d8964b0644f43e326cac315cef1fb6abd79995d01f54637de265da680537"
+  }
+}
